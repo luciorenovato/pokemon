@@ -1,48 +1,121 @@
 <template>
   <q-page class="flex flex-center">
-    <div class="row justify-around" style="padding: 15px">
-      <div class="col-4" style="padding: 30px" v-for="(creature, index) in creatures" :key="index">
-        <q-card class="my-card">
-          <img :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${creature.url.split('/')[6]}.png`">
-          <q-card-section>
-            <div class="text-h6">{{ creature.name }}</div>
-          </q-card-section>
-          <q-card-section class="q-pt-none">
-            R$ {{ creature.url.split('/')[6] % 8 * 12 + 10 }},00
-          </q-card-section>
-        </q-card>
+    <div class="row">
+      <div class="col-9">
+        <div class="row justify-around" style="padding: 15px">
+          <div class="col-4" style="padding: 30px" v-for="(creature, index) in currentPage" :key="index">
+            <q-card>
+              <img :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${creature.url}.png`">
+              <q-card-section class="bg-red">
+                <div class="text-h6">{{ creature.name }}</div>
+              </q-card-section>
+              <q-card-section class="bg-red">
+                <div class="text-h5">${{ creature.price }},00</div>
+                <div class=" text-right cursor-pointer"><q-btn round color="primary" icon="add_shopping_cart" @click="addToCart(creature)"/></div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="row justify-around" style="padding: 15px">
+          <div class="col-12" style="padding: 5px; background-color: red">
+            <q-card>
+              <div class="row">
+                <div class="col-12">
+                  <div class="text-h3">Carrinho</div>
+                </div>
+              </div>
+            </q-card>
+          </div>
+          <div class="col-12" style="padding: 5px; background-color: red" v-for="(item, index) in cart" :key="index">
+            <q-card>
+              <div class="row items-center">
+                <div class="col-2">
+                  <img width='100%' :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.url}.png`">
+                </div>
+                <div class="col-5">
+                  <div class="text-body">{{ item.name }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-body text-right">${{ item.price }},00</div>
+                </div>
+              </div>
+            </q-card>
+          </div>
+          <div class="col-12" style="padding: 5px; background-color: red">
+            <q-card>
+              <div class="row">
+                <div class="col-12">
+                  <div class="text-h4 text-right">Total: ${{ total }}</div>
+                </div>
+              </div>
+            </q-card>
+          </div>
+        </div>
       </div>
     </div>
-    <q-btn round color="primary" icon="arrow_left" @click="loadCreatures(previous)" />
-    Página: {{ page }}/{{ Math.ceil(count / 6) }}
-    <q-btn round color="primary" icon="arrow_right" @click="loadCreatures(next)" />
+    <div class="row items-center" style="padding: 5px">
+      <q-btn round color="primary" icon="arrow_left" @click="previousPage()" />
+      Página: {{ page }}/{{ Math.ceil(count / 6) }}
+      <q-btn round color="primary" icon="arrow_right" @click="nextPage()" />
+    </div>
   </q-page>
 </template>
 
 <script>
+import { mapState, mapMutations } from 'vuex'
 export default {
   name: 'PageIndex',
   data () {
     return {
-      creatures: null,
-      count: 0,
+      count: 964,
       page: 1,
-      next: 'https://pokeapi.co/api/v2/pokemon/?&limit=6',
-      previous: null
+      offset: 0,
+      pageSize: 6,
+      apiUrl: 'https://pokeapi.co/api/v2/pokemon/?&limit=964'
+    }
+  },
+  computed: {
+    ...mapState(['creatures', 'cart']),
+    total: function () {
+      let totalPrice = 0
+      this.cart.forEach(function (item) {
+        totalPrice = totalPrice + item.price
+      })
+      return totalPrice
+    },
+    currentPage: function () {
+      return this.creatures.filter((creature, index) => index >= this.offset && index < this.offset + this.pageSize)
+      // return this.creatures
     }
   },
   methods: {
-    loadCreatures (url) {
-      this.$axios.get(url)
+    ...mapMutations(['setCreatures', 'addToCart']),
+    nextPage () {
+      if (this.page < this.count / this.pageSize) {
+        this.offset = this.offset + this.pageSize
+        this.page++
+      }
+    },
+    previousPage () {
+      if (this.page > 1) {
+        this.offset = this.offset - this.pageSize
+        this.page--
+      }
+    },
+    loadCreatures () {
+      this.$axios.get(this.apiUrl)
         .then((response) => {
           this.data = response.data
           console.log(this.data)
-          this.count = this.data.count
-          this.next = this.data.next
-          this.previous = this.data.previous
-          this.creatures = this.data.results
-          if (url.indexOf('offset') > 0) {
-            this.page = (parseInt(url.split('offset=')[1].split('&limit')[0]) + 6) / 6
+          this.data.results.forEach(function (item, index, arr) {
+            arr[index].price = ((parseInt(arr[index].url.split('/')[6]) - 1) % 3 + 1) * 10
+            arr[index].url = arr[index].url.split('/')[6]
+          })
+          this.setCreatures(this.data.results)
+          if (this.apiUrl.indexOf('offset') > 0) {
+            this.page = (parseInt(this.apiUrl.split('offset=')[1].split('&limit')[0]) + 6) / 6
           } else {
             this.page = 1
           }
@@ -58,7 +131,7 @@ export default {
     }
   },
   mounted () {
-    this.loadCreatures(this.next)
+    this.loadCreatures()
   }
 }
 </script>
