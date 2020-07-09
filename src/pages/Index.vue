@@ -1,9 +1,9 @@
 <template>
   <q-page class="flex flex-center">
     <div class="row">
-      <div class="col-9">
-        <div class="row justify-around" style="padding: 15px">
-          <div class="col-4" style="padding: 30px" v-for="(creature, index) in currentPage" :key="index">
+      <div class="col-md-9 col-sm-12">
+        <div class="row justify-around" style="padding: 5px">
+          <div class="col-md-4 col-sm-12" style="padding: 5px" v-for="(creature, index) in currentPage" :key="index">
             <q-card>
               <img :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${creature.url}.png`">
               <q-card-section class="bg-red">
@@ -17,8 +17,8 @@
           </div>
         </div>
       </div>
-      <div class="col-3">
-        <div class="row justify-around" style="padding: 15px">
+      <div class="col-md-3 col-sm-12">
+        <div class="row justify-around" style="padding: 5px">
           <div class="col-12" style="padding: 5px; background-color: red">
             <q-card>
               <div class="row">
@@ -34,16 +34,19 @@
                 <div class="col-2">
                   <img width='100%' :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.url}.png`">
                 </div>
-                <div class="col-5">
+                <div class="col-4">
                   <div class="text-body">{{ item.name }}</div>
                 </div>
                 <div class="col-4">
-                  <div class="text-body text-right">${{ item.price }},00</div>
+                  <div class="text-body">${{ item.price }},00</div>
+                </div>
+                <div class="col-1">
+                  <div class="text-right cursor-pointer"><q-btn round color="primary" icon="delete" @click="removeFromCart(item)"/></div>
                 </div>
               </div>
             </q-card>
           </div>
-          <div class="col-12" style="padding: 5px; background-color: red">
+          <div class="col-md-12 col-sm-12" style="padding: 5px; background-color: red">
             <q-card>
               <div class="row">
                 <div class="col-12">
@@ -55,10 +58,12 @@
         </div>
       </div>
     </div>
-    <div class="row items-center" style="padding: 5px">
-      <q-btn round color="primary" icon="arrow_left" @click="previousPage()" />
-      Página: {{ page }}/{{ Math.ceil(count / 6) }}
-      <q-btn round color="primary" icon="arrow_right" @click="nextPage()" />
+    <div class="row items-center float-bottom" style="padding: 5px">
+      <div class="col-md-12 col-sm-12">
+        <q-btn round color="red" icon="arrow_left" @click="previousPage()" />
+        Página: {{ page }}/{{ Math.ceil(count / pageSize) }}
+        <q-btn round color="red" icon="arrow_right" @click="nextPage()" />
+      </div>
     </div>
   </q-page>
 </template>
@@ -91,7 +96,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['setCreatures', 'addToCart']),
+    ...mapMutations(['setCreatures', 'addToCart', 'removeFromCart']),
     nextPage () {
       if (this.page < this.count / this.pageSize) {
         this.offset = this.offset + this.pageSize

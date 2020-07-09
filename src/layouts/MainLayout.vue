@@ -1,10 +1,10 @@
 <template>
   <q-layout view="hHh lpR fFf">
 
-    <q-header reveal elevated class="bg-primary text-white">
+    <q-header reveal elevated class="bg-red text-white">
       <q-toolbar>
         <q-toolbar-title>
-          Pokemon Store 6
+          Pokemon Store
         </q-toolbar-title>
 
       </q-toolbar>
